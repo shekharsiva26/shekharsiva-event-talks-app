@@ -51,10 +51,15 @@
                     <span>Refresh</span>
                 </button>
                 
-                <button id="themeToggle" class="btn btn-icon" title="Toggle Dark/Light Mode">
-                    <i data-lucide="sun" class="sun-icon"></i>
-                    <i data-lucide="moon" class="moon-icon"></i>
-                </button>
+                <div class="theme-switch-wrapper">
+                    <label class="theme-switch" for="themeCheckbox" title="Toggle Dark/Light Mode">
+                        <input type="checkbox" id="themeCheckbox">
+                        <div class="slider">
+                            <i data-lucide="sun" class="sun-icon"></i>
+                            <i data-lucide="moon" class="moon-icon"></i>
+                        </div>
+                    </label>
+                </div>
             </div>
         </header>
 

@@ -315,11 +315,84 @@ h1, h2, h3, h4, h5, h6 {
     border: 1px solid var(--border-color);
 }
 
-/* Theme Icons Visibility */
-body.dark-theme .sun-icon { display: block; }
-body.dark-theme .moon-icon { display: none; }
-body:not(.dark-theme) .sun-icon { display: none; }
-body:not(.dark-theme) .moon-icon { display: block; }
+/* Theme Toggle Switch */
+.theme-switch-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.theme-switch {
+    display: inline-block;
+    height: 32px;
+    position: relative;
+    width: 60px;
+    cursor: pointer;
+}
+
+.theme-switch input {
+    display: none;
+}
+
+.slider {
+    background-color: var(--bg-tertiary);
+    bottom: 0;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transition: background-color var(--transition-normal), border-color var(--transition-normal);
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px;
+    color: var(--text-muted);
+}
+
+.slider::before {
+    background-color: var(--bg-secondary);
+    bottom: 3px;
+    content: "";
+    height: 24px;
+    left: 3px;
+    position: absolute;
+    transition: transform var(--transition-normal);
+    width: 24px;
+    border-radius: var(--radius-full);
+    box-shadow: var(--shadow-sm);
+    z-index: 2;
+}
+
+/* Move slider handle when checked */
+input:checked + .slider::before {
+    transform: translateX(28px);
+}
+
+.slider .sun-icon, .slider .moon-icon {
+    position: relative;
+    z-index: 1;
+    width: 14px;
+    height: 14px;
+    transition: color var(--transition-normal);
+    display: block;
+}
+
+/* Light mode styling: sun is active */
+body:not(.dark-theme) .slider .sun-icon {
+    color: var(--accent-orange);
+}
+body:not(.dark-theme) .slider .moon-icon {
+    color: var(--text-muted);
+}
+
+/* Dark mode styling: moon is active */
+body.dark-theme .slider .moon-icon {
+    color: var(--accent-blue);
+}
+body.dark-theme .slider .sun-icon {
+    color: var(--text-muted);
+}
 
 /* Main Section Layout */
 .app-main {

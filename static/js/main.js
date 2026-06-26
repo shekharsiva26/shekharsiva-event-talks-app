@@ -9,7 +9,7 @@ let selectedUpdate = null;
 
 // DOM Elements
 const elements = {
-    themeToggle: document.getElementById('themeToggle'),
+    themeCheckbox: document.getElementById('themeCheckbox'),
     refreshBtn: document.getElementById('refreshBtn'),
     lastUpdatedText: document.getElementById('lastUpdatedText'),
     searchInput: document.getElementById('searchInput'),
@@ -58,27 +58,36 @@ document.addEventListener('DOMContentLoaded', () => {
 function initTheme() {
     const savedTheme = localStorage.getItem('theme');
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    let isDark = true;
     
     if (savedTheme === 'light') {
         document.body.classList.remove('dark-theme');
+        isDark = false;
     } else if (savedTheme === 'dark' || systemPrefersDark) {
         document.body.classList.add('dark-theme');
+        isDark = true;
     } else {
         document.body.classList.add('dark-theme'); // Default to dark-theme for premium aesthetics
+        isDark = true;
+    }
+    
+    // Synchronize the toggle switch checkbox state
+    if (elements.themeCheckbox) {
+        elements.themeCheckbox.checked = isDark;
     }
     
     lucide.createIcons();
 }
 
 function toggleTheme() {
-    const isDark = document.body.classList.toggle('dark-theme');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    
-    // Play a small hover/active scale animation on toggle
-    elements.themeToggle.style.transform = 'scale(0.9)';
-    setTimeout(() => {
-        elements.themeToggle.style.transform = '';
-    }, 150);
+    const isDark = elements.themeCheckbox.checked;
+    if (isDark) {
+        document.body.classList.add('dark-theme');
+        localStorage.setItem('theme', 'dark');
+    } else {
+        document.body.classList.remove('dark-theme');
+        localStorage.setItem('theme', 'light');
+    }
     
     showToast(isDark ? 'Dark mode enabled' : 'Light mode enabled', 'info');
 }
@@ -147,8 +156,8 @@ function toggleLoadingState(loading) {
 
 // Event Listeners Setup
 function setupEventListeners() {
-    // Theme Toggle
-    elements.themeToggle.addEventListener('click', toggleTheme);
+    // Theme Toggle Switch
+    elements.themeCheckbox.addEventListener('change', toggleTheme);
     
     // Refresh Button
     elements.refreshBtn.addEventListener('click', () => fetchReleaseNotes(true));
