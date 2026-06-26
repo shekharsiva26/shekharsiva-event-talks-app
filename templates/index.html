@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigQuery Release Hub</title>
+    <meta name="description" content="Stay updated with the latest BigQuery release notes. Easily filter, search, and share updates directly to Twitter/X.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons (Sleek, modern vector icons) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="dark-theme">
+    <div class="app-layout">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <div class="logo-container">
+                    <svg class="app-logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="url(#logoGrad)" />
+                        <path d="M8 8H16V10H8V8ZM8 12H16V14H8V12ZM8 16H13V18H8V16Z" fill="white" />
+                        <defs>
+                            <linearGradient id="logoGrad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#4285F4" />
+                                <stop offset="1" stop-color="#34A853" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div class="logo-text">
+                        <h1>BigQuery <span>Release Hub</span></h1>
+                        <p class="subtitle">Google Cloud Feed Navigator</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <div class="sync-status">
+                    <i data-lucide="clock" class="icon-sm"></i>
+                    <span id="lastUpdatedText">Loading...</span>
+                </div>
+                
+                <button id="refreshBtn" class="btn btn-primary" title="Refresh Release Notes">
+                    <i data-lucide="refresh-cw" class="icon-spin-target"></i>
+                    <span>Refresh</span>
+                </button>
+                
+                <button id="themeToggle" class="btn btn-icon" title="Toggle Dark/Light Mode">
+                    <i data-lucide="sun" class="sun-icon"></i>
+                    <i data-lucide="moon" class="moon-icon"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="app-main">
+            <!-- Sidebar / Control Panel -->
+            <aside class="app-sidebar">
+                <!-- Search Section -->
+                <div class="sidebar-widget search-widget">
+                    <h3>Search Release Notes</h3>
+                    <div class="search-input-wrapper">
+                        <i data-lucide="search" class="search-icon"></i>
+                        <input type="text" id="searchInput" placeholder="Search keywords, features..." autocomplete="off">
+                        <button id="clearSearchBtn" class="btn-clear-search" style="display: none;">
+                            <i data-lucide="x" class="icon-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Dashboard -->
+                <div class="sidebar-widget stats-widget">
+                    <h3>Overview</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card" data-filter="all">
+                            <div class="stat-num" id="statAll">0</div>
+                            <div class="stat-label">Total Notes</div>
+                        </div>
+                        <div class="stat-card" data-filter="Feature">
+                            <div class="stat-num text-feature" id="statFeatures">0</div>
+                            <div class="stat-label">Features</div>
+                        </div>
+                        <div class="stat-card" data-filter="Change">
+                            <div class="stat-num text-change" id="statChanges">0</div>
+                            <div class="stat-label">Changes</div>
+                        </div>
+                        <div class="stat-card" data-filter="Deprecation">
+                            <div class="stat-num text-deprecation" id="statDeprecations">0</div>
+                            <div class="stat-label">Deprecations</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category Selector -->
+                <div class="sidebar-widget filter-widget">
+                    <h3>Categories</h3>
+                    <div class="category-list" id="categoryList">
+                        <button class="category-pill active" data-category="all">
+                            <span class="pill-dot bg-all"></span> All Updates
+                        </button>
+                        <button class="category-pill" data-category="Feature">
+                            <span class="pill-dot bg-feature"></span> Features
+                        </button>
+                        <button class="category-pill" data-category="Change">
+                            <span class="pill-dot bg-change"></span> Changes
+                        </button>
+                        <button class="category-pill" data-category="Deprecation">
+                            <span class="pill-dot bg-deprecation"></span> Deprecations
+                        </button>
+                        <button class="category-pill" data-category="Breaking change">
+                            <span class="pill-dot bg-breaking"></span> Breaking Changes
+                        </button>
+                        <button class="category-pill" data-category="Fix">
+                            <span class="pill-dot bg-fix"></span> Fixes
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Date Filters -->
+                <div class="sidebar-widget date-widget">
+                    <h3>Timeframe</h3>
+                    <div class="timeframe-buttons">
+                        <button class="btn btn-outline active" data-days="all">All Time</button>
+                        <button class="btn btn-outline" data-days="7">Past 7 Days</button>
+                        <button class="btn btn-outline" data-days="30">Past 30 Days</button>
+                        <button class="btn btn-outline" data-days="90">Past 90 Days</button>
+                    </div>
+                </div>
+
+                <!-- Footer info -->
+                <div class="sidebar-footer">
+                    <p>Data sourced from official Google Cloud feeds.</p>
+                    <p>Designed for BigQuery developers.</p>
+                </div>
+            </aside>
+
+            <!-- Main Timeline Content -->
+            <section class="app-content">
+                <div class="content-header">
+                    <h2 class="section-title">Timeline Updates <span id="visibleCount" class="badge">0</span></h2>
+                    <div class="sorting-controls">
+                        <span class="sort-label">Sort Date:</span>
+                        <button id="sortOrderBtn" class="btn btn-text" data-order="desc">
+                            <span>Newest First</span>
+                            <i data-lucide="arrow-down-narrow-wide" class="icon-sm"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Timeline Container -->
+                <div class="timeline-container" id="timelineContainer">
+                    <!-- Skeletons (rendered while loading) -->
+                    <div class="timeline-skeletons" id="timelineSkeletons">
+                        <div class="skeleton-card">
+                            <div class="skeleton-header">
+                                <div class="skeleton-badge"></div>
+                                <div class="skeleton-date"></div>
+                            </div>
+                            <div class="skeleton-body">
+                                <div class="skeleton-line w-full"></div>
+                                <div class="skeleton-line w-5-6"></div>
+                                <div class="skeleton-line w-2-3"></div>
+                            </div>
+                            <div class="skeleton-footer">
+                                <div class="skeleton-btn"></div>
+                                <div class="skeleton-btn"></div>
+                            </div>
+                        </div>
+                        <div class="skeleton-card">
+                            <div class="skeleton-header">
+                                <div class="skeleton-badge"></div>
+                                <div class="skeleton-date"></div>
+                            </div>
+                            <div class="skeleton-body">
+                                <div class="skeleton-line w-full"></div>
+                                <div class="skeleton-line w-4-5"></div>
+                                <div class="skeleton-line w-1-2"></div>
+                            </div>
+                            <div class="skeleton-footer">
+                                <div class="skeleton-btn"></div>
+                                <div class="skeleton-btn"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Cards Rendered Here -->
+                    <div class="timeline-feed" id="timelineFeed"></div>
+
+                    <!-- Empty State -->
+                    <div class="empty-state" id="emptyState" style="display: none;">
+                        <div class="empty-icon-wrapper">
+                            <i data-lucide="search-code" class="empty-icon"></i>
+                        </div>
+                        <h3>No Release Notes Found</h3>
+                        <p>We couldn't find any updates matching your search queries or category filters. Try resetting the filters.</p>
+                        <button id="resetFiltersBtn" class="btn btn-secondary">Reset Filters</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Tweet Modal -->
+        <div class="modal-overlay" id="tweetModal" style="display: none;">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <div class="modal-title-wrapper">
+                        <i data-lucide="twitter" class="icon-tweet-blue"></i>
+                        <h2>Compose Tweet</h2>
+                    </div>
+                    <button class="btn-close" id="closeModalBtn" title="Close Modal">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body">
+                    <!-- Twitter/X Post Mockup -->
+                    <div class="tweet-mockup">
+                        <div class="mockup-header">
+                            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=80&q=80" alt="Avatar" class="mockup-avatar">
+                            <div class="mockup-user-info">
+                                <span class="mockup-display-name">BigQuery Release Bot</span>
+                                <span class="mockup-username">@bq_release_hub</span>
+                            </div>
+                            <svg class="mockup-x-logo" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                            </svg>
+                        </div>
+                        <div class="mockup-content">
+                            <p id="tweetPreviewText">Loading preview...</p>
+                        </div>
+                        <div class="mockup-footer">
+                            <span class="mockup-time">1:42 PM · Jun 26, 2026</span>
+                            <span class="mockup-source">· BigQuery Hub App</span>
+                        </div>
+                    </div>
+
+                    <!-- Editor Textarea -->
+                    <div class="tweet-editor-wrapper">
+                        <label for="tweetTextArea">Customize your post text:</label>
+                        <textarea id="tweetTextArea" rows="5" maxlength="350" placeholder="What's happening?"></textarea>
+                        
+                        <div class="editor-tools">
+                            <div class="suggested-tags">
+                                <span class="tag-pill" data-tag="#BigQuery">#BigQuery</span>
+                                <span class="tag-pill" data-tag="#GoogleCloud">#GoogleCloud</span>
+                                <span class="tag-pill" data-tag="#DataAnalytics">#DataAnalytics</span>
+                            </div>
+                            
+                            <!-- Progress circle & Character Counter -->
+                            <div class="char-counter-container">
+                                <svg class="progress-ring" width="36" height="36">
+                                    <circle class="progress-ring-bg" stroke="rgba(255,255,255,0.1)" stroke-width="3" fill="transparent" r="14" cx="18" cy="18"/>
+                                    <circle class="progress-ring-bar" id="charProgressCircle" stroke="#1d9bf0" stroke-width="3" stroke-dasharray="87.96" stroke-dashoffset="87.96" fill="transparent" r="14" cx="18" cy="18"/>
+                                </svg>
+                                <span id="charCountText">280</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button id="copyTweetBtn" class="btn btn-secondary">
+                        <i data-lucide="copy" class="icon-sm"></i>
+                        <span>Copy Text</span>
+                    </button>
+                    <button id="postTweetBtn" class="btn btn-tweet">
+                        <svg class="icon-x-sm" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                        <span>Post to X</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div class="toast-container" id="toastContainer"></div>
+    </div>
+
+    <!-- Main JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
