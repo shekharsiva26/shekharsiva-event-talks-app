@@ -693,6 +693,12 @@ body:not(.dark-theme) .moon-icon { display: block; }
     gap: 8px;
 }
 
+.card-actions-top .btn-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+}
+
 /* Card Content Body */
 .card-body {
     font-size: 0.925rem;

@@ -17,6 +17,7 @@ const elements = {
     categoryList: document.getElementById('categoryList'),
     timeframeButtons: document.querySelector('.timeframe-buttons'),
     sortOrderBtn: document.getElementById('sortOrderBtn'),
+    exportCsvBtn: document.getElementById('exportCsvBtn'),
     visibleCount: document.getElementById('visibleCount'),
     timelineFeed: document.getElementById('timelineFeed'),
     timelineSkeletons: document.getElementById('timelineSkeletons'),
@@ -231,6 +232,9 @@ function setupEventListeners() {
         applyFilters();
     });
     
+    // Export to CSV click
+    elements.exportCsvBtn.addEventListener('click', exportToCSV);
+    
     // Empty state reset button
     elements.resetFiltersBtn.addEventListener('click', resetAllFilters);
     
@@ -381,6 +385,9 @@ function renderTimelineFeed() {
                         <span class="card-date">${update.date_str}</span>
                     </div>
                     <div class="card-actions-top">
+                        <button class="btn btn-icon btn-copy-card" onclick="copyCardToClipboard('${update.id}')" title="Copy update text to clipboard">
+                            <i data-lucide="copy" class="icon-xs"></i>
+                        </button>
                         <button class="btn btn-icon btn-tweet-card" onclick="openTweetComposer('${update.id}')" title="Share this update on X/Twitter">
                             <svg class="icon-x-sm" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
@@ -624,4 +631,70 @@ function formatTimeAgo(date) {
     const days = Math.floor(hours / 24);
     if (days === 1) return 'yesterday';
     return `${days} days ago`;
+}
+
+// Copy specific update card content to clipboard
+function copyCardToClipboard(updateId) {
+    const update = allUpdates.find(u => u.id === updateId);
+    if (!update) return;
+    
+    const formattedText = `[${update.date_str}] ${update.type}: ${update.content_text}\nSource: ${update.link}`;
+    
+    navigator.clipboard.writeText(formattedText).then(() => {
+        showToast('Update details copied to clipboard', 'success');
+    }).catch(err => {
+        console.error('Failed to copy update card:', err);
+        showToast('Failed to copy text', 'error');
+    });
+}
+
+// Export currently filtered updates to CSV
+function exportToCSV() {
+    if (filteredUpdates.length === 0) {
+        showToast('No updates available to export', 'warning');
+        return;
+    }
+    
+    const headers = ['Date', 'Type', 'Description', 'Link'];
+    const rows = filteredUpdates.map(update => [
+        update.date_str,
+        update.type,
+        update.content_text,
+        update.link
+    ]);
+    
+    // Helper to format values for CSV compliance
+    const formatCSVValue = (val) => {
+        if (val === null || val === undefined) return '';
+        let strVal = String(val);
+        // Escape quotes by doubling them, and wrap in quotes if separator/newlines exist
+        if (strVal.includes('"') || strVal.includes(',') || strVal.includes('\n') || strVal.includes('\r')) {
+            strVal = '"' + strVal.replace(/"/g, '""') + '"';
+        }
+        return strVal;
+    };
+    
+    const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(formatCSVValue).join(','))
+    ].join('\n');
+    
+    try {
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        
+        const dateStr = new Date().toISOString().slice(0, 10);
+        link.setAttribute('download', `bigquery_release_notes_${dateStr}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showToast(`Exported ${filteredUpdates.length} updates to CSV`, 'success');
+    } catch (err) {
+        console.error('CSV export failed:', err);
+        showToast('Failed to export CSV', 'error');
+    }
 }
